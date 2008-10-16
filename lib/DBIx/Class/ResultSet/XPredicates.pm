@@ -17,16 +17,15 @@ sub xsearch {
             $self = $self->$search( $params );
             next; 
         }
-        if( $self->result_source->has_relationship( $column ) && ref $params->{$column} ){
-            my ( $join, $predicates ) = _translate( $self->result_source, $column, $params->{$column} );
-            $self = $self->search({}, { join => $join });
-            $columns->{$_} = $predicates->{$_} for keys %$predicates;
+        my ( $join, $predicates );
+        if( $column =~ /\./ ){
+            ( $join, $predicates ) = $self->_parse_column( $column, $params->{$column} );
         }
-        else{ 
-            my ( $full_name, $relation ) = $self->_parse_column( $column );
-            $self = $self->search({}, { join => $relation });
-            $columns->{$full_name} = $params->{$column};
+        else{
+            ( $join, $predicates ) = _translate( $self->result_source, $column, $params->{$column} );
         }
+        $self = $self->search({}, { join => $join });
+        $columns->{$_} = $predicates->{$_} for keys %$predicates;
     }
     return $self->search( $columns, $attrs );
 }
@@ -73,13 +72,13 @@ sub _translate {
 
 
 sub _parse_column {
-    my ( $self, $full_col ) = @_;
+    my ( $self, $full_col, $value ) = @_;
     my ($col, $join, @rest) = reverse split /\./, $full_col;
     return $col unless $join;
 
     my $full_name = "${join}.${col}";
     $join = { $_ => $join } for @rest;
-    return ($full_name, $join);
+    return ( $join, { $full_name => $value } );
 }
 
 # Module implementation here
