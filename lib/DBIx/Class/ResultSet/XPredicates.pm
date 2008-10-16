@@ -138,6 +138,24 @@ In that method you get the ResultSet object and all the parameters - you can
 write your search in isolation from other predicates and at the call time it
 will be correctly combined with the other predicates using 'AND'.
 
+=head2 Joins - experimental
+
+You can also specify the joins in the query parameters (instead of the attributes):
+
+    some_other_relation.some_third_relation.column => 'value4'
+
+or even:
+
+    some_other_relation => { 
+        some_third_relation => { 
+            column1 => { like => '%some_value%' },
+            column2 => 'some_value'
+        }
+    }
+
+This works by checking if a given key in the hash works as a relation name on
+the ResultSet.  This is mostly exploratory and will change in the future.
+
 =head1 INTERFACE 
 
 =for author to fill in:
