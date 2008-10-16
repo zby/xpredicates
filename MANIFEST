@@ -15,6 +15,7 @@ t/lib/DBSchema/Result/Dvdtag.pm
 t/lib/DBSchema/Result/UserRole.pm
 t/lib/DBSchema/Result/Role.pm
 t/lib/DBSchema/ResultSet/Dvd.pm
+t/lib/DBSchema/ResultSet/User.pm
 t/lib/MySchema.pm
 t/var/dvdzbr.db
 t/advanced_search.t

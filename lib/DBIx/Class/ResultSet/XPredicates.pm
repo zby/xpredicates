@@ -17,8 +17,8 @@ sub xsearch {
             $self = $self->$search( $params );
             next; 
         }
-        if( ref $params->{$column} ){
-            my ( $join, $predicates ) = $self->_translate( $column, $params->{$column} );
+        if( $self->result_source->has_relationship( $column ) && ref $params->{$column} ){
+            my ( $join, $predicates ) = _translate( $self->result_source, $column, $params->{$column} );
             $self = $self->search({}, { join => $join });
             $columns->{$_} = $predicates->{$_} for keys %$predicates;
         }
@@ -32,15 +32,13 @@ sub xsearch {
 }
 
 sub _translate {
-    my ( $self, $column, $value ) = @_;
-    if( ! ref $value ){
-        return ( undef, { $column => $value } );
-    }
-    else {
+    my ( $source, $column, $value ) = @_;
+    if( ref $value && $source->has_relationship( $column ) ){
         my @sub_joins;
         my %predicates;
+        my $rel_source = $source->related_source( $column );
         for my $sub_col ( keys %$value ){
-            my( $sub_join, $sub_predicates ) = $self->_translate( $sub_col, $value->{$sub_col} );
+            my( $sub_join, $sub_predicates ) = _translate( $rel_source, $sub_col, $value->{$sub_col} );
             if( ref $sub_join eq 'ARRAY' ){ 
                 push @sub_joins, @$sub_join;
             }
@@ -67,6 +65,9 @@ sub _translate {
             $joins = $column
         }
         return ( $joins, \%predicates );
+    }
+    else {
+        return ( undef, { $column => $value } );
     }
 }
 
